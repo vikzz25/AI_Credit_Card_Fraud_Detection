@@ -92,7 +92,6 @@ def main():
             random_state=42,
             n_jobs=-1
         )
-
     }
 
     results = {}
