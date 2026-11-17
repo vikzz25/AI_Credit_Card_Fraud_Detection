@@ -176,6 +176,22 @@ def main():
             best_model_name = name
             best_threshold = threshold
 
+    # Save the dedicated XGBoost model for SHAP and Phase 3.
+
+    xgboost_bundle = {
+        "pipeline": trained_models["XGBoost"],
+        "model_name": "XGBoost",
+        "threshold": results["XGBoost"]["validation_threshold"],
+        "feature_columns": list(X_train.columns),
+    }
+
+    joblib.dump(
+        xgboost_bundle,
+        MODEL_DIR / "fraud_model_xgboost.joblib"
+    )
+
+    print("XGBoost model saved successfully.")
+
     # Save XGBoost separately for SHAP explanations
     xgboost_bundle = {
     "pipeline": trained_models["XGBoost"],
