@@ -8,10 +8,7 @@
 > workflow to turn a transaction score into an understandable
 > investigation report.
 
-```{=html}
-<p align="center">
-```
-`<img src="https://img.shields.io/badge/Python-3.11-blue?logo=python" alt="Python 3.11">`{=html}
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 `<img src="https://img.shields.io/badge/Machine%20Learning-XGBoost-orange" alt="XGBoost">`{=html}
 `<img src="https://img.shields.io/badge/Explainable%20AI-SHAP-purple" alt="SHAP">`{=html}
 `<img src="https://img.shields.io/badge/Orchestration-LangGraph-green" alt="LangGraph">`{=html}
