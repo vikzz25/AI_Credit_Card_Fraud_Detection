@@ -12,3 +12,12 @@ openai>=1.0
 python-dotenv>=1.0
 langgraph>=1.0,<2
 grandalf>=0.8
+
+# Phase 5: RAG and Vector Database
+chromadb>=1.5,<2
+langchain-chroma>=1.1,<2
+langchain-huggingface>=1.2,<2
+sentence-transformers>=6.3,<7
+
+# Phase 5: Document Processing
+langchain-text-splitters>=1.0,<2

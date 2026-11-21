@@ -42,3 +42,11 @@ chroma_db/
 # IDE
 .vscode/
 .idea/
+
+# Local vector database
+vector_store/
+
+# HuggingFace model cache
+.cache/
+
+# Python environment
