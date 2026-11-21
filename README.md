@@ -79,7 +79,7 @@ state:
 
   **Knowledge Agent**                 Retrieves relevant policy guidance
                                       using the current initial
-                                      keyword-based implementation
+                                      semantic retrieval using ChromaDB and Hugging Face embeddings
 
   **Reporting Agent**                 Creates a structured final
                                       investigation report
@@ -134,7 +134,7 @@ At a high level, a transaction is passed into the workflow.
     explanation as evidence and creates a careful narrative.
 5.  **Retrieve guidance** --- the Knowledge Agent supplies policy
     context. The current implementation uses a small illustrative policy
-    knowledge base and keyword matching.
+    knowledge base and semantic retrieval with a persistent ChromaDB vector database.
 6.  **Report** --- the Reporting Agent combines the outputs into a
     structured result.
 
@@ -151,13 +151,15 @@ The workflow is designed to assist an investigator, not replace one.
   Visualization / exploration   Matplotlib, Seaborn, JupyterLab
   LLM integration               OpenAI, LangChain
   Agent orchestration           LangGraph
+  RAG framework                 LangChain text splitters and retrievers
+  Vector database               ChromaDB
+  Embeddings                    Hugging Face Sentence Transformers
   Model persistence             Joblib
   Environment configuration     python-dotenv
   Version control               Git, GitHub
 
-> **Planned for Phase 5:** ChromaDB-based vector storage and semantic
-> retrieval for the policy knowledge base. This is a planned
-> enhancement, not part of the currently completed implementation.
+> **Phase 5 completed:** Persistent ChromaDB vector storage and semantic
+> policy retrieval using Hugging Face sentence-transformer embeddings.
 
 ------------------------------------------------------------------------
 
@@ -171,7 +173,9 @@ AI_Credit_Card_Fraud_Detection/
 │
 ├── data/
 │   ├── raw/                 # Original dataset (not committed)
-│   └── processed/            # Processed data (not committed)
+│   ├── processed/            # Processed data (not committed)
+│   └── knowledge_base/
+│       └── fraud_detection_policy.md
 │
 ├── models/                   # Saved trained model artifacts (not committed)
 │
@@ -180,6 +184,11 @@ AI_Credit_Card_Fraud_Detection/
 ├── reports/
 │   ├── figures/              # Generated plots
 │   └── metrics/              # Evaluation outputs
+│
+├── scripts/
+│   └── test_phase5_end_to_end.py
+│
+├── vector_store/             # Local ChromaDB database (not committed)
 │
 ├── src/
 │   ├── agents/
@@ -195,7 +204,11 @@ AI_Credit_Card_Fraud_Detection/
 │   │   └── fraud_investigation.py
 │   │
 │   ├── rag/
-│   │   └── policy_knowledge.py
+│   │   ├── document_loader.py
+│   │   ├── text_splitter.py
+│   │   ├── embeddings.py
+│   │   ├── vector_store.py
+│   │   └── retriever.py
 │   │
 │   ├── data/
 │   └── ml/
@@ -205,6 +218,46 @@ AI_Credit_Card_Fraud_Detection/
 ├── requirements.txt
 └── README.md
 ```
+
+## 🚦 Development status
+
+| Phase | Implementation | Status |
+|---|---|---|
+| Phase 1 | Data preparation and exploratory analysis | Completed |
+| Phase 2 | Machine learning fraud detection | Completed |
+| Phase 3 | Explainable AI using SHAP | Completed |
+| Phase 4 | Multi-agent investigation workflow using LangGraph | Completed |
+| Phase 5 | RAG, Hugging Face embeddings, ChromaDB, and end-to-end integration | Completed |
+
+**Current milestone: Phase 5 completed successfully.**
+
+The platform now combines machine-learning predictions, SHAP explanations,
+LLM-assisted investigation, semantic policy retrieval, and structured
+reporting in one workflow.
+
+### Phase 5 end-to-end validation
+
+Run the complete workflow test:
+
+```bash
+python -u scripts/test_phase5_end_to_end.py
+```
+
+The test validates:
+- Fraud prediction generation.
+- SHAP explanation availability.
+- Investigation Agent output.
+- Policy retrieval from ChromaDB.
+- Final report generation.
+- Successful workflow completion with `REPORT_COMPLETED`.
+
+**Validation result: PASSED.**
+
+The test requires the dataset, trained model, installed dependencies, and
+a valid OpenAI API key. It makes an OpenAI API call through the
+Investigation Agent.
+
+---
 
 ## 🚀 Getting started
 

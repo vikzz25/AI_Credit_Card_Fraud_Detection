@@ -3,121 +3,109 @@
 Knowledge Agent.
 
 Retrieves relevant fraud investigation guidance
-from the temporary policy knowledge base.
-
-This implementation will be upgraded to RAG
-with ChromaDB in Phase 5.
+from the persistent ChromaDB knowledge base.
 """
 
 from src.agents.state.fraud_state import FraudState
+from src.rag.retriever import retrieve_relevant_documents
 
-from src.rag.policy_knowledge import FRAUD_POLICIES
 
+def retrieve_policies(query: str, k: int = 3) -> list:
+    """Retrieve relevant fraud policy chunks using semantic search."""
 
-# ---------------------------------------------------------
-# 1. RETRIEVE RELEVANT POLICIES
-# ---------------------------------------------------------
-
-def retrieve_policies(query: str) -> list:
-    """
-    Retrieve relevant policies using simple keyword matching.
-
-    Args:
-        query (str): Investigation context.
-
-    Returns:
-        list: Relevant policy documents.
-    """
-
-    if not query or not query.strip():
-        return []
-
-    query_words = set(query.lower().split())
-
-    scored_policies = []
-
-    for policy in FRAUD_POLICIES:
-
-        searchable_text = (
-            policy["title"] + " " + policy["category"]
-            + " " + policy["content"]
-        ).lower()
-
-        policy_words = set(searchable_text.split())
-
-        score = len(query_words.intersection(policy_words))
-
-        if score > 0:
-            scored_policies.append((score, policy))
-
-    # Sort by relevance score.
-    scored_policies.sort(
-        key=lambda item: item[0],
-        reverse=True,
+    return retrieve_relevant_documents(
+        query=query,
+        k=k,
     )
 
-    return [
-        policy
-        for score, policy in scored_policies[:3]
-    ]
-
-
-# ---------------------------------------------------------
-# 2. KNOWLEDGE AGENT
-# ---------------------------------------------------------
 
 def knowledge_agent(state: FraudState) -> dict:
     """
-    LangGraph node responsible for retrieving
-    relevant investigation guidance.
-
-    Args:
-        state (FraudState): Current shared workflow state.
-
-    Returns:
-        dict: Retrieved policy context and updated status.
+    Retrieve relevant fraud policy evidence and update shared state.
     """
 
+    # Step 1: Read information from shared state.
     prediction = state.get("prediction")
     investigation = state.get("investigation")
 
     if not prediction:
-        raise ValueError(
-            "Prediction is missing from FraudState."
-        )
+        raise ValueError("Prediction is missing from FraudState.")
 
     if not investigation:
-        raise ValueError(
-            "Investigation report is missing from FraudState."
-        )
+        raise ValueError("Investigation report is missing from FraudState.")
 
-    # Prepare search context.
+    # Step 2: Prepare semantic search query.
     query = (
-        f"Risk status: {prediction['risk_status']} "
-        f"Fraud probability: {prediction['fraud_probability']} "
-        f"Investigation: {investigation}"
+        f"Risk status: {prediction['risk_status']}\n"
+        f"Fraud probability: {prediction['fraud_probability']}\n"
+        f"Investigation findings:\n{investigation}"
     )
 
-    # Retrieve relevant policy documents.
-    relevant_policies = retrieve_policies(query)
+    # Step 3: Retrieve relevant policy evidence.
+    print(
+        "\n[DEBUG] Knowledge Agent: Starting policy retrieval...",
+        flush=True,
+    )
 
-    # Format policy context.
-    policy_context = "\n\n".join(
-        (
-            f"Policy ID: {policy['id']}\n"
-            f"Title: {policy['title']}\n"
-            f"Category: {policy['category']}\n"
-            f"Guidance: {policy['content']}"
+    print(
+        "[DEBUG] Query length:",
+        len(query),
+        flush=True,
+    )
+
+    relevant_policies = retrieve_policies(
+        query=query,
+        k=3,
+    )
+
+    print(
+        "[DEBUG] Knowledge Agent: Retrieval completed!",
+        flush=True,
+    )
+
+    print(
+        "[DEBUG] Retrieved documents:",
+        len(relevant_policies),
+        flush=True,
+    )
+
+    # Step 4: Format retrieved evidence.
+    policy_sections = []
+
+    for index, (document, distance) in enumerate(
+        relevant_policies,
+        start=1,
+    ):
+        source = document.metadata.get(
+            "source",
+            "Unknown source",
         )
-        for policy in relevant_policies
-    )
 
-    if not policy_context:
+        chunk_index = document.metadata.get(
+            "chunk_index",
+            "Unknown",
+        )
+
+        policy_section = (
+            f"Retrieved Evidence {index}\n"
+            f"Source: {source}\n"
+            f"Chunk Index: {chunk_index}\n"
+            f"Retrieval Distance: {distance:.4f}\n"
+            f"Content:\n{document.page_content}"
+        )
+
+        policy_sections.append(policy_section)
+
+    # Step 5: Handle empty retrieval results.
+    if policy_sections:
+        policy_context = "\n\n".join(policy_sections)
+    else:
         policy_context = (
             "No matching policy guidance was retrieved. "
             "Do not invent policy requirements."
         )
 
+    # Step 6: Return updates to LangGraph shared state.
     return {
         "policy_context": policy_context,
         "status": "KNOWLEDGE_RETRIEVED",
